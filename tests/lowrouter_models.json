@@ -1,0 +1,535 @@
+{
+ "object": "list",
+ "data": [
+  {
+   "architecture": {
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ]
+   },
+   "auto_routing": {
+    "candidates": [
+     "mistral/mistralai/mistral-large-2512/eu",
+     "mistral/mistralai/mistral-large-2512/global"
+    ],
+    "carbon_range": {
+     "carbon_per_token_gco2e": {
+      "max": 0.002897367,
+      "min": 0.0016469244
+     },
+     "grid_carbon_intensity_gco2_per_kwh": {
+      "max": 475,
+      "min": 270
+     }
+    },
+    "pricing_range": {
+     "completion_per_1m_tokens": {
+      "max": 1.4024999999999999,
+      "min": 1.275
+     },
+     "currency": "EUR",
+     "prompt_per_1m_tokens": {
+      "max": 0.46749999999999997,
+      "min": 0.425
+     }
+    }
+   },
+   "capabilities": {
+    "function_calling": true,
+    "input_modalities": [
+     "image",
+     "text"
+    ],
+    "streaming": true
+   },
+   "context_length": 256000,
+   "id": "auto/mistralai/mistral-large-2512",
+   "modality": "chat",
+   "name": "auto/mistralai/mistral-large-2512",
+   "provider": "auto",
+   "supported_parameters": [
+    "tools",
+    "tool_choice"
+   ]
+  },
+  {
+   "architecture": {
+    "input_modalities": [
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ]
+   },
+   "auto_routing": {
+    "candidates": [
+     "scaleway/qwen/qwen3-coder-30b-a3b-instruct/fr-par"
+    ],
+    "carbon_range": {
+     "carbon_per_token_gco2e": {
+      "max": 0.00011405855999999998,
+      "min": 0.00011405855999999998
+     },
+     "grid_carbon_intensity_gco2_per_kwh": {
+      "max": 56,
+      "min": 56
+     }
+    },
+    "pricing_range": {
+     "completion_per_1m_tokens": {
+      "max": 0.7999999999999999,
+      "min": 0.7999999999999999
+     },
+     "currency": "EUR",
+     "prompt_per_1m_tokens": {
+      "max": 0.19999999999999998,
+      "min": 0.19999999999999998
+     }
+    }
+   },
+   "capabilities": {
+    "function_calling": true,
+    "input_modalities": [
+     "text"
+    ],
+    "streaming": true
+   },
+   "context_length": 128000,
+   "id": "auto/qwen/qwen3-coder-30b-a3b-instruct",
+   "modality": "chat",
+   "name": "auto/qwen/qwen3-coder-30b-a3b-instruct",
+   "provider": "auto",
+   "supported_parameters": [
+    "tools",
+    "tool_choice"
+   ]
+  },
+  {
+   "architecture": {
+    "input_modalities": [
+     "text",
+     "document",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ]
+   },
+   "auto_routing": {
+    "candidates": [
+     "aws-bedrock/anthropic/claude-haiku-4.5/ca-mtr",
+     "aws-bedrock/anthropic/claude-haiku-4.5/fr-par",
+     "aws-bedrock/anthropic/claude-haiku-4.5/us-pdx",
+     "aws-bedrock/anthropic/claude-haiku-4.5/gb-lhr",
+     "aws-bedrock/anthropic/claude-haiku-4.5/ie-dub",
+     "aws-bedrock/anthropic/claude-haiku-4.5/de-fra",
+     "aws-bedrock/anthropic/claude-haiku-4.5/us-ash",
+     "aws-bedrock/anthropic/claude-haiku-4.5/us-cmh",
+     "aws-bedrock/anthropic/claude-haiku-4.5/global",
+     "aws-bedrock/anthropic/claude-haiku-4.5/se-arn",
+     "aws-bedrock/anthropic/claude-haiku-4.5/us-sfo",
+     "deepinfra/anthropic/claude-haiku-4.5/us",
+     "anthropic/anthropic/claude-haiku-4.5/global"
+    ],
+    "carbon_range": {
+     "carbon_per_token_gco2e": {
+      "max": 0.0023387100000000004,
+      "min": 9.847200000000003e-06
+     },
+     "grid_carbon_intensity_gco2_per_kwh": {
+      "max": 475,
+      "min": 2
+     }
+    },
+    "pricing_range": {
+     "completion_per_1m_tokens": {
+      "max": 4.988524,
+      "min": 4.535022
+     },
+     "currency": "EUR",
+     "prompt_per_1m_tokens": {
+      "max": 0.997705,
+      "min": 0.907005
+     }
+    }
+   },
+   "capabilities": {
+    "function_calling": true,
+    "input_modalities": [
+     "document",
+     "image",
+     "text"
+    ],
+    "streaming": true
+   },
+   "context_length": 200000,
+   "id": "auto/anthropic/claude-haiku-4.5",
+   "max_output_tokens": 64000,
+   "modality": "chat",
+   "name": "auto/anthropic/claude-haiku-4.5",
+   "provider": "auto",
+   "supported_parameters": [
+    "tools",
+    "tool_choice"
+   ]
+  },
+  {
+   "architecture": {
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ]
+   },
+   "auto_routing": {
+    "candidates": [
+     "infomaniak/moonshotai/kimi-k2.6/ch-gva",
+     "nebius/moonshotai/kimi-k2.6/us-mci",
+     "deepinfra/moonshotai/kimi-k2.6/us"
+    ],
+    "carbon_range": {
+     "carbon_per_token_gco2e": {
+      "max": 0.0018957153600000004,
+      "min": 9.247392000000002e-05
+     },
+     "grid_carbon_intensity_gco2_per_kwh": {
+      "max": 369,
+      "min": 18
+     }
+    },
+    "pricing_range": {
+     "completion_per_1m_tokens": {
+      "max": 3.628017,
+      "min": 3
+     },
+     "currency": "EUR",
+     "prompt_per_1m_tokens": {
+      "max": 0.861655,
+      "min": 0.6
+     }
+    }
+   },
+   "capabilities": {
+    "function_calling": true,
+    "input_modalities": [
+     "image",
+     "text"
+    ],
+    "streaming": true
+   },
+   "id": "auto/moonshotai/kimi-k2.6",
+   "modality": "chat",
+   "name": "auto/moonshotai/kimi-k2.6",
+   "provider": "auto",
+   "supported_parameters": [
+    "tools",
+    "tool_choice"
+   ]
+  },
+  {
+   "architecture": {
+    "input_modalities": [
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ]
+   },
+   "auto_routing": {
+    "candidates": [
+     "scaleway/qwen/qwen3-coder-30b-a3b-instruct/fr-par"
+    ],
+    "carbon_range": {
+     "carbon_per_token_gco2e": {
+      "max": 0.00011405855999999998,
+      "min": 0.00011405855999999998
+     },
+     "grid_carbon_intensity_gco2_per_kwh": {
+      "max": 56,
+      "min": 56
+     }
+    },
+    "pricing_range": {
+     "completion_per_1m_tokens": {
+      "max": 0.7999999999999999,
+      "min": 0.7999999999999999
+     },
+     "currency": "EUR",
+     "prompt_per_1m_tokens": {
+      "max": 0.19999999999999998,
+      "min": 0.19999999999999998
+     }
+    }
+   },
+   "capabilities": {
+    "function_calling": true,
+    "input_modalities": [
+     "text"
+    ],
+    "streaming": true
+   },
+   "context_length": 128000,
+   "id": "alias/coder",
+   "modality": "chat",
+   "name": "alias/coder",
+   "provider": "auto",
+   "supported_parameters": [
+    "tools",
+    "tool_choice"
+   ],
+   "alias_target": "auto/qwen/qwen3-coder-30b-a3b-instruct"
+  },
+  {
+   "architecture": {
+    "input_modalities": [
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ]
+   },
+   "auto_routing": {
+    "candidates": [
+     "nscale/qwen/qwen3-32b/no-glo",
+     "aws-bedrock/qwen/qwen3-32b/br-gru",
+     "aws-bedrock/qwen/qwen3-32b/us-pdx",
+     "aws-bedrock/qwen/qwen3-32b/gb-lhr",
+     "aws-bedrock/qwen/qwen3-32b/ie-dub",
+     "aws-bedrock/qwen/qwen3-32b/de-fra",
+     "deepinfra/qwen/qwen3-32b/us",
+     "aws-bedrock/qwen/qwen3-32b/us-ash",
+     "aws-bedrock/qwen/qwen3-32b/us-cmh",
+     "aws-bedrock/qwen/qwen3-32b/jp-tyo",
+     "aws-bedrock/qwen/qwen3-32b/in-bom",
+     "aws-bedrock/qwen/qwen3-32b/au-syd",
+     "aws-bedrock/qwen/qwen3-32b/se-arn"
+    ],
+    "carbon_range": {
+     "carbon_per_token_gco2e": {
+      "max": 0.0032879616000000005,
+      "min": 4.109952000000001e-05
+     },
+     "grid_carbon_intensity_gco2_per_kwh": {
+      "max": 640,
+      "min": 8
+     }
+    },
+    "pricing_range": {
+     "completion_per_1m_tokens": {
+      "max": 0.843514,
+      "min": 0.22675199999999998
+     },
+     "currency": "EUR",
+     "prompt_per_1m_tokens": {
+      "max": 0.208611,
+      "min": 0.072561
+     }
+    }
+   },
+   "capabilities": {
+    "function_calling": true,
+    "input_modalities": [
+     "text"
+    ],
+    "streaming": true
+   },
+   "context_length": 40960,
+   "id": "auto/qwen/qwen3-32b",
+   "modality": "chat",
+   "name": "auto/qwen/qwen3-32b",
+   "provider": "auto",
+   "supported_parameters": [
+    "tools",
+    "tool_choice"
+   ]
+  },
+  {
+   "architecture": {
+    "input_modalities": [
+     "text",
+     "image"
+    ],
+    "output_modalities": [
+     "text"
+    ]
+   },
+   "capabilities": {
+    "function_calling": true,
+    "input_modalities": [
+     "image",
+     "text"
+    ],
+    "streaming": true
+   },
+   "context_length": 256000,
+   "id": "mistral/mistralai/mistral-large-2512",
+   "modality": "chat",
+   "name": "mistral/mistralai/mistral-large-2512",
+   "provider": "mistral",
+   "supported_parameters": [
+    "tools",
+    "tool_choice"
+   ]
+  },
+  {
+   "architecture": {
+    "input_modalities": [
+     "text"
+    ]
+   },
+   "capabilities": {
+    "streaming": true
+   },
+   "context_length": 2048,
+   "id": "deepinfra/google/embeddinggemma-300m",
+   "modality": "embedding",
+   "name": "deepinfra/google/embeddinggemma-300m",
+   "provider": "deepinfra"
+  },
+  {
+   "architecture": {
+    "input_modalities": [
+     "text"
+    ]
+   },
+   "auto_routing": {
+    "candidates": [
+     "deepinfra/sentence-transformers/all-minilm-l6/us"
+    ],
+    "carbon_range": {
+     "carbon_per_token_gco2e": {
+      "max": 0.000634099593996,
+      "min": 0.000634099593996
+     },
+     "grid_carbon_intensity_gco2_per_kwh": {
+      "max": 369,
+      "min": 369
+     }
+    },
+    "pricing_range": {
+     "completion_per_1m_tokens": {
+      "max": 0,
+      "min": 0
+     },
+     "currency": "EUR",
+     "prompt_per_1m_tokens": {
+      "max": 0.004536,
+      "min": 0.004536
+     }
+    }
+   },
+   "capabilities": {
+    "streaming": true
+   },
+   "id": "auto/sentence-transformers/all-minilm-l6",
+   "modality": "embedding",
+   "name": "auto/sentence-transformers/all-minilm-l6",
+   "provider": "auto"
+  },
+  {
+   "architecture": {
+    "input_modalities": [
+     "text",
+     "audio",
+     "image",
+     "video"
+    ]
+   },
+   "auto_routing": {
+    "candidates": [
+     "google/google/gemini-3.8-live/global"
+    ],
+    "carbon_range": {
+     "carbon_per_token_gco2e": {
+      "max": 0.0023387100000000004,
+      "min": 0.0023387100000000004
+     },
+     "grid_carbon_intensity_gco2_per_kwh": {
+      "max": 475,
+      "min": 475
+     }
+    },
+    "pricing_range": {
+     "completion_per_1m_tokens": {
+      "max": 4.08152,
+      "min": 4.08152
+     },
+     "currency": "EUR",
+     "prompt_per_1m_tokens": {
+      "max": 0.6802539999999999,
+      "min": 0.6802539999999999
+     }
+    }
+   },
+   "capabilities": {
+    "function_calling": true,
+    "input_modalities": [
+     "audio",
+     "image",
+     "text",
+     "video"
+    ],
+    "streaming": true
+   },
+   "id": "auto/google/gemini-3.8-live",
+   "modality": "realtime",
+   "name": "auto/google/gemini-3.8-live",
+   "provider": "auto",
+   "supported_parameters": [
+    "tools",
+    "tool_choice"
+   ]
+  },
+  {
+   "architecture": {
+    "input_modalities": [
+     "text"
+    ],
+    "output_modalities": [
+     "text"
+    ]
+   },
+   "auto_routing": {
+    "candidates": [
+     "deepinfra/ibm-granite/granite-4.2-3b/us"
+    ],
+    "carbon_range": {
+     "carbon_per_token_gco2e": {
+      "max": 0.00075156444,
+      "min": 0.00075156444
+     },
+     "grid_carbon_intensity_gco2_per_kwh": {
+      "max": 369,
+      "min": 369
+     }
+    },
+    "pricing_range": {
+     "completion_per_1m_tokens": {
+      "max": 0.108841,
+      "min": 0.108841
+     },
+     "currency": "EUR",
+     "prompt_per_1m_tokens": {
+      "max": 0.027211,
+      "min": 0.027211
+     }
+    }
+   },
+   "capabilities": {
+    "streaming": true
+   },
+   "context_length": 131072,
+   "id": "auto/ibm-granite/granite-4.2-3b",
+   "modality": "chat",
+   "name": "auto/ibm-granite/granite-4.2-3b",
+   "provider": "auto"
+  }
+ ],
+ "recorded": "GET https://api.lowrouter.ai/v1/models on 2026-10-09, trimmed to one entry per filter case, regions removed; alias/coder is an account alias shaped like the keyed response's alias entries"
+}
