@@ -208,6 +208,19 @@ def test_a_failed_fetch_for_a_new_key_does_not_answer_from_the_old_one(accounts,
     assert plugin.lowrouter.get_model_context_length("alias/coder") is None
 
 
+def test_storing_drops_other_owners_expired_answers(monkeypatch):
+    plugin.catalog.store("old", [_item()])
+    monkeypatch.setattr(plugin, "CATALOG_TTL_SECONDS", 0.0)
+    plugin.catalog.store("new", [_item()])
+    assert plugin.catalog.context_length("old", "auto/lab/model") is None
+    assert plugin.catalog.context_length("new", "auto/lab/model") == 128000
+
+
+def test_a_catalog_item_with_a_non_string_id_is_skipped():
+    plugin.catalog.store("owner", [{"id": ["not", "hashable"]}, _item()])
+    assert plugin.catalog.context_length("owner", "auto/lab/model") == 128000
+
+
 def test_the_cache_does_not_hold_the_raw_key():
     owner = plugin.catalog_owner("sk-lr-secret", plugin.BASE_URL)
     assert "sk-lr-secret" not in owner

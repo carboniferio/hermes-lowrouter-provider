@@ -62,7 +62,8 @@ class _Catalog:
             # drop other owners' expired answers, so old keys don't pile up
             self._answers = {other: answer for other, answer in self._answers.items()
                              if now - answer[0] < CATALOG_TTL_SECONDS}
-            self._answers[owner] = now, {item["id"]: item for item in items if isinstance(item, dict) and "id" in item}
+            self._answers[owner] = now, {item["id"]: item for item in items
+                                         if isinstance(item, dict) and isinstance(item.get("id"), str)}
 
     def _answer(self, owner: str) -> tuple[float, dict[str, dict]]:
         with self._lock:
