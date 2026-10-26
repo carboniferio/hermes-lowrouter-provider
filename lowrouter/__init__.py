@@ -7,6 +7,7 @@ in USD and we bill in EUR.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import threading
@@ -43,26 +44,35 @@ def runs_in_hermes(item: Any) -> bool:
     return not (isinstance(context, int) and 0 < context < MIN_CONTEXT)
 
 
+def catalog_owner(api_key: str | None, base_url: str) -> str:
+    """Who a /v1/models answer belongs to. Hashed, so the key isn't kept."""
+    return hashlib.sha256(f"{base_url.rstrip('/')}\n{api_key or ''}".encode()).hexdigest()
+
+
 class _Catalog:
-    """Last /v1/models answer, by model id."""
+    """Last /v1/models answer, by model id, and whose answer it was."""
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
+        self._owner: str | None = None
         self._items: dict[str, dict] = {}
         self._fetched_at = 0.0
 
-    def store(self, items: list) -> None:
+    def store(self, owner: str, items: list) -> None:
         with self._lock:
+            self._owner = owner
             self._items = {item["id"]: item for item in items if isinstance(item, dict) and "id" in item}
             self._fetched_at = time.monotonic()
 
-    def fresh(self) -> bool:
+    def fresh(self, owner: str) -> bool:
         with self._lock:
-            return bool(self._items) and time.monotonic() - self._fetched_at < CATALOG_TTL_SECONDS
+            return (owner == self._owner and bool(self._items)
+                    and time.monotonic() - self._fetched_at < CATALOG_TTL_SECONDS)
 
-    def context_length(self, model: str) -> int | None:
+    def context_length(self, owner: str, model: str) -> int | None:
         with self._lock:
-            context = (self._items.get(model) or {}).get("context_length")
+            # another key's aliases and windows are not ours
+            context = (self._items.get(model) or {}).get("context_length") if owner == self._owner else None
         return context if type(context) is int and context > 0 else None
 
 
@@ -124,20 +134,22 @@ class LowRouterProfile(ProviderProfile):
     def fetch_models(
         self, *, api_key: str | None = None, base_url: str | None = None, timeout: float = 8.0
     ) -> list[str] | None:
-        items = fetch_catalog((base_url or self.base_url).rstrip("/") + "/models", api_key=api_key, timeout=timeout)
+        base_url = (base_url or self.base_url).rstrip("/")
+        items = fetch_catalog(base_url + "/models", api_key=api_key, timeout=timeout)
         if items is None:
             return None
-        catalog.store(items)
+        catalog.store(catalog_owner(api_key, base_url), items)
         return [item["id"] for item in items if runs_in_hermes(item)]
 
     def get_model_context_length(self, model: str) -> int | None:
-        if not catalog.fresh():
-            # with the key, so aliases are in there
-            api_key, base_url = configured_credentials()
+        # with the key, so aliases are in there
+        api_key, base_url = configured_credentials()
+        owner = catalog_owner(api_key, base_url)
+        if not catalog.fresh(owner):
             items = fetch_catalog(base_url.rstrip("/") + "/models", api_key=api_key, timeout=5.0)
             if items is not None:
-                catalog.store(items)
-        return catalog.context_length(model)
+                catalog.store(owner, items)
+        return catalog.context_length(owner, model)
 
     def fetch_account_usage(self, *, base_url: str | None = None, api_key: str | None = None) -> Any:
         if not api_key:

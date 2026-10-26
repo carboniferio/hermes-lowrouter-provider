@@ -59,7 +59,7 @@ def test_manifest_version_is_the_one_the_readme_documents():
 
 
 def test_only_the_standard_library_and_hermes_are_imported():
-    allowed = {"__future__", "datetime", "json", "logging", "threading", "time", "typing", "urllib.request",
+    allowed = {"__future__", "datetime", "hashlib", "json", "logging", "threading", "time", "typing", "urllib.request",
                "providers", "providers.base", "hermes_cli.urllib_security", "hermes_cli.auth",
                "agent.account_usage"}
     for path in SOURCES:

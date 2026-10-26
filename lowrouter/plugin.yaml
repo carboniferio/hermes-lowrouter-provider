@@ -1,6 +1,6 @@
 name: lowrouter
 kind: model-provider
-version: 0.1.0
+version: 0.1.1
 description: LowRouter provider for Hermes. Lists the models Hermes can run (plus your aliases), uses LowRouter's context windows, shows your EUR balance in /usage.
 author: carboniferio
 requires_hermes: ">=0.21.5"
