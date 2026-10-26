@@ -10,7 +10,7 @@ from conftest import CATALOG, RUNNABLE_IDS, plugin, registered_profiles
 
 
 @pytest.fixture(autouse=True)
-def empty_catalog(monkeypatch):
+def fresh_catalog(monkeypatch):
     monkeypatch.setattr(plugin, "catalog", plugin._Catalog())
 
 
