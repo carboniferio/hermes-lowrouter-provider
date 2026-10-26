@@ -102,7 +102,7 @@ Hermes 0.21.5 or newer. CI tests against v2026.9.24 (0.21.5) and `main` daily.
 ### 0.1.1
 
 - The model cache is kept per API key and base URL, so after switching keys the context windows
-  and aliases come from the new account. The cache holds a hash of the key, not the key.
+  (aliases' included) come from the new account. The cache holds a hash of the key, not the key.
 - The README no longer quotes model counts from the live catalog.
 
 ### 0.1.0
