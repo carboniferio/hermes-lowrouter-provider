@@ -50,31 +50,29 @@ def catalog_owner(api_key: str | None, base_url: str) -> str:
 
 
 class _Catalog:
-    """Last /v1/models answer, by model id, and whose answer it was."""
+    """Last /v1/models answer per owner, by model id. Another key's aliases and windows are not ours."""
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        self._owner: str | None = None
-        self._items: dict[str, dict] = {}
-        self._fetched_at = 0.0
+        self._answers: dict[str, tuple[float, dict[str, dict]]] = {}  # owner -> (fetched_at, items)
 
     def store(self, owner: str, items: list) -> None:
+        now = time.monotonic()
         with self._lock:
-            self._owner = owner
-            self._items = {item["id"]: item for item in items if isinstance(item, dict) and "id" in item}
-            self._fetched_at = time.monotonic()
-
-    def _items_for(self, owner: str) -> dict[str, dict]:
-        # another key's aliases and windows are not ours
-        return self._items if owner == self._owner else {}
+            # drop other owners' expired answers, so old keys don't pile up
+            self._answers = {other: answer for other, answer in self._answers.items()
+                             if now - answer[0] < CATALOG_TTL_SECONDS}
+            self._answers[owner] = now, {item["id"]: item for item in items if isinstance(item, dict) and "id" in item}
 
     def fresh(self, owner: str) -> bool:
         with self._lock:
-            return bool(self._items_for(owner)) and time.monotonic() - self._fetched_at < CATALOG_TTL_SECONDS
+            fetched_at, items = self._answers.get(owner, (0.0, {}))
+        return bool(items) and time.monotonic() - fetched_at < CATALOG_TTL_SECONDS
 
     def context_length(self, owner: str, model: str) -> int | None:
         with self._lock:
-            context = (self._items_for(owner).get(model) or {}).get("context_length")
+            items = self._answers.get(owner, (0.0, {}))[1]
+        context = (items.get(model) or {}).get("context_length")
         return context if type(context) is int and context > 0 else None
 
 

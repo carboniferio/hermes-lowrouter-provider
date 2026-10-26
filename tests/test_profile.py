@@ -181,7 +181,7 @@ def test_keyless_and_keyed_answers_do_not_mix(accounts, monkeypatch):
     assert plugin.lowrouter.get_model_context_length("alias/coder") == 128000
     _use_key(monkeypatch, None)
     assert plugin.lowrouter.get_model_context_length("alias/coder") is None
-    assert accounts == [None, "sk-lr-a", None]
+    assert accounts == [None, "sk-lr-a"]  # the keyless answer is still cached
 
 
 def test_another_base_url_is_another_cache(accounts, monkeypatch):
@@ -190,6 +190,14 @@ def test_another_base_url_is_another_cache(accounts, monkeypatch):
     _use_key(monkeypatch, "sk-lr-a", "http://127.0.0.1:9080/v1")
     plugin.lowrouter.get_model_context_length("alias/coder")
     assert accounts == ["sk-lr-a", "sk-lr-a"]
+
+
+def test_switching_back_reuses_the_first_keys_answer(accounts, monkeypatch):
+    plugin.lowrouter.fetch_models(api_key="sk-lr-a")
+    plugin.lowrouter.fetch_models(api_key="sk-lr-b")
+    _use_key(monkeypatch, "sk-lr-a")
+    assert plugin.lowrouter.get_model_context_length("alias/coder") == 128000
+    assert accounts == ["sk-lr-a", "sk-lr-b"]
 
 
 def test_a_failed_fetch_for_a_new_key_does_not_answer_from_the_old_one(accounts, monkeypatch):
