@@ -103,8 +103,12 @@ def test_the_model_list_and_context_windows_come_from_the_catalog(home):
     try:
         found = _python(home, f"""
 import json
+import hermes_cli.auth as auth
 from providers import get_provider_profile
 from agent.model_metadata import get_model_context_length
+# Hermes has no base URL override for lowrouter; the key still comes from .env
+resolve = auth.resolve_api_key_provider_credentials
+auth.resolve_api_key_provider_credentials = lambda provider: {{**resolve(provider), "base_url": "{server.base_url}"}}
 profile = get_provider_profile("lowrouter")
 models = profile.fetch_models(api_key="{API_KEY}", base_url="{server.base_url}")
 context = {{m: get_model_context_length(m, base_url=profile.base_url, api_key="{API_KEY}", provider="lowrouter")
