@@ -185,11 +185,20 @@ def test_keyless_and_keyed_answers_do_not_mix(accounts, monkeypatch):
 
 
 def test_another_base_url_is_another_cache(accounts, monkeypatch):
+    urls: list = []
+    fetch = plugin.fetch_catalog
+
+    def fetch_and_record(url, **kwargs):
+        urls.append(url)
+        return fetch(url, **kwargs)
+
+    monkeypatch.setattr(plugin, "fetch_catalog", fetch_and_record)
     _use_key(monkeypatch, "sk-lr-a")
     plugin.lowrouter.get_model_context_length("alias/coder")
     _use_key(monkeypatch, "sk-lr-a", "http://127.0.0.1:9080/v1")
     plugin.lowrouter.get_model_context_length("alias/coder")
     assert accounts == ["sk-lr-a", "sk-lr-a"]
+    assert urls == [plugin.BASE_URL + "/models", "http://127.0.0.1:9080/v1/models"]
 
 
 def test_switching_back_reuses_the_first_keys_answer(accounts, monkeypatch):

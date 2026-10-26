@@ -108,8 +108,8 @@ from providers import get_provider_profile
 from agent.model_metadata import get_model_context_length
 # Hermes has no base URL override for lowrouter; the key still comes from .env
 resolve = auth.resolve_api_key_provider_credentials
-auth.resolve_api_key_provider_credentials = lambda provider: (
-    {{**resolve(provider), "base_url": "{server.base_url}"}} if provider == "lowrouter" else resolve(provider))
+auth.resolve_api_key_provider_credentials = lambda provider_id: (
+    {{**resolve(provider_id), "base_url": "{server.base_url}"}} if provider_id == "lowrouter" else resolve(provider_id))
 profile = get_provider_profile("lowrouter")
 models = profile.fetch_models(api_key="{API_KEY}", base_url="{server.base_url}")
 context = {{m: get_model_context_length(m, base_url=profile.base_url, api_key="{API_KEY}", provider="lowrouter")
