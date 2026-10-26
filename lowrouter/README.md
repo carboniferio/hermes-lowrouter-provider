@@ -15,7 +15,7 @@ the plugin instead (Hermes v0.21.5, live API, 2026-10-09):
 
 | | Custom endpoint | Plugin |
 |---|---|---|
-| Model list | 719 IDs, including every pinned route, embedding and realtime models, and models without tool calling | the 180 `auto/` chat models with tool calling, plus your own `alias/` models |
+| Model list | every ID, including every pinned route, embedding and realtime models, and models without tool calling | the `auto/` chat models with tool calling, plus your own `alias/` models |
 | Context window | read from `/v1/models` | read from `/v1/models`. A named provider without this lookup gets Hermes' 256K fallback, or a family default: 262,144 for `auto/qwen/qwen3-coder-30b-a3b-instruct`, which has 128,000 |
 | `/usage` | nothing | your credit balance in euros |
 
@@ -85,8 +85,8 @@ Hermes shows LowRouter sessions with an unknown cost. `/usage` shows your balanc
   client, with `LOWROUTER_API_KEY`.
 - The plugin's own requests go to the same base URL with the same key, through Hermes'
   `open_credentialed_url`: `GET /v1/models` for the model list and context windows (cached for an
-  hour), and `GET /v1/credits` on `/usage`. Without a key the catalog is fetched anonymously; it's
-  public.
+  hour per key and base URL), and `GET /v1/credits` on `/usage`. Without a key the catalog is
+  fetched anonymously; it's public.
 - LowRouter forwards your prompts, tool schemas and tool results to the host serving the model.
   Hosts per model are listed on [lowrouter.ai/models](https://lowrouter.ai/models).
 - No files read or written, no processes, no dependencies beyond Hermes. Hermes reads
@@ -98,6 +98,12 @@ Hermes shows LowRouter sessions with an unknown cost. `/usage` shows your balanc
 Hermes 0.21.5 or newer. CI tests against v2026.9.24 (0.21.5) and `main` daily.
 
 ## Changelog
+
+### 0.1.1
+
+- Context windows are cached per API key and base URL, so after you switch keys they come from the
+  new account, aliases included. The cache stores a hash of the key instead of the key itself.
+- The README no longer quotes model counts from the live catalog.
 
 ### 0.1.0
 

@@ -10,15 +10,17 @@ from conftest import CATALOG, RUNNABLE_IDS, plugin, registered_profiles
 
 
 @pytest.fixture(autouse=True)
-def empty_catalog():
-    plugin.catalog.store([])
-    yield
-    plugin.catalog.store([])
+def fresh_catalog(monkeypatch):
+    monkeypatch.setattr(plugin, "catalog", plugin._Catalog())
+
+
+def _use_key(monkeypatch, api_key, base_url=plugin.BASE_URL):
+    monkeypatch.setattr(plugin, "configured_credentials", lambda: (api_key, base_url))
 
 
 @pytest.fixture(autouse=True)
 def no_configured_key(monkeypatch):
-    monkeypatch.setattr(plugin, "configured_credentials", lambda: (None, plugin.BASE_URL))
+    _use_key(monkeypatch, None)
 
 
 @pytest.fixture
@@ -104,12 +106,13 @@ def test_context_lookup_fetches_the_catalog_once_without_a_key_when_none_is_conf
 
 
 def test_context_lookup_uses_the_configured_key_and_base_url(requests, monkeypatch):
-    monkeypatch.setattr(plugin, "configured_credentials", lambda: ("sk-lr-test", "http://127.0.0.1:9080/v1"))
+    _use_key(monkeypatch, "sk-lr-test", "http://127.0.0.1:9080/v1")
     assert plugin.lowrouter.get_model_context_length("alias/coder") == 128000
     assert requests == [("http://127.0.0.1:9080/v1/models", "sk-lr-test")]
 
 
-def test_context_lookup_reuses_the_picker_fetch(requests):
+def test_context_lookup_reuses_the_picker_fetch_with_the_same_key(requests, monkeypatch):
+    _use_key(monkeypatch, "sk-lr-test")
     plugin.lowrouter.fetch_models(api_key="sk-lr-test")
     assert plugin.lowrouter.get_model_context_length("auto/anthropic/claude-haiku-4.5") == 200000
     assert len(requests) == 1
@@ -125,6 +128,113 @@ def test_context_lookup_refetches_after_the_ttl(requests, monkeypatch):
 def test_context_lookup_returns_none_when_the_catalog_is_unreachable(monkeypatch):
     monkeypatch.setattr(plugin, "fetch_catalog", lambda url, *, api_key, timeout: None)
     assert plugin.lowrouter.get_model_context_length("auto/mistralai/mistral-large-2512") is None
+
+
+@pytest.fixture
+def accounts(monkeypatch):
+    """Each key sees its own alias/coder window; keyless sees no alias."""
+    seen: list = []
+    windows = {"sk-lr-a": 128000, "sk-lr-b": 200000}
+
+    def fake_fetch(url, *, api_key, timeout):
+        seen.append(api_key)
+        alias = [_item(id="alias/coder", context_length=windows[api_key])] if api_key in windows else []
+        return [_item(), *alias]
+
+    monkeypatch.setattr(plugin, "fetch_catalog", fake_fetch)
+    return seen
+
+
+def test_switching_keys_refetches_with_the_new_key(accounts, monkeypatch):
+    _use_key(monkeypatch, "sk-lr-a")
+    assert plugin.lowrouter.get_model_context_length("alias/coder") == 128000
+    _use_key(monkeypatch, "sk-lr-b")
+    assert plugin.lowrouter.get_model_context_length("alias/coder") == 200000
+    assert accounts == ["sk-lr-a", "sk-lr-b"]
+
+
+def test_the_same_key_reuses_the_cache_within_the_ttl(accounts, monkeypatch):
+    _use_key(monkeypatch, "sk-lr-a")
+    for _ in range(3):
+        assert plugin.lowrouter.get_model_context_length("alias/coder") == 128000
+    assert accounts == ["sk-lr-a"]
+
+
+def test_the_same_key_refetches_after_the_ttl(accounts, monkeypatch):
+    _use_key(monkeypatch, "sk-lr-a")
+    plugin.lowrouter.get_model_context_length("alias/coder")
+    monkeypatch.setattr(plugin, "CATALOG_TTL_SECONDS", 0.0)
+    plugin.lowrouter.get_model_context_length("alias/coder")
+    assert accounts == ["sk-lr-a", "sk-lr-a"]
+
+
+def test_a_picker_fetch_with_another_key_is_not_reused(accounts, monkeypatch):
+    plugin.lowrouter.fetch_models(api_key="sk-lr-a")
+    _use_key(monkeypatch, "sk-lr-b")
+    assert plugin.lowrouter.get_model_context_length("alias/coder") == 200000
+    assert accounts == ["sk-lr-a", "sk-lr-b"]
+
+
+def test_keyless_and_keyed_answers_do_not_mix(accounts, monkeypatch):
+    plugin.lowrouter.fetch_models(api_key=None)
+    _use_key(monkeypatch, "sk-lr-a")
+    assert plugin.lowrouter.get_model_context_length("alias/coder") == 128000
+    _use_key(monkeypatch, None)
+    assert plugin.lowrouter.get_model_context_length("alias/coder") is None
+    assert accounts == [None, "sk-lr-a"]  # the keyless answer is still cached
+
+
+def test_another_base_url_is_another_cache(accounts, monkeypatch):
+    urls: list = []
+    fetch = plugin.fetch_catalog
+
+    def fetch_and_record(url, **kwargs):
+        urls.append(url)
+        return fetch(url, **kwargs)
+
+    monkeypatch.setattr(plugin, "fetch_catalog", fetch_and_record)
+    _use_key(monkeypatch, "sk-lr-a")
+    plugin.lowrouter.get_model_context_length("alias/coder")
+    _use_key(monkeypatch, "sk-lr-a", "http://127.0.0.1:9080/v1")
+    plugin.lowrouter.get_model_context_length("alias/coder")
+    assert accounts == ["sk-lr-a", "sk-lr-a"]
+    assert urls == [plugin.BASE_URL + "/models", "http://127.0.0.1:9080/v1/models"]
+
+
+def test_switching_back_reuses_the_first_keys_answer(accounts, monkeypatch):
+    plugin.lowrouter.fetch_models(api_key="sk-lr-a")
+    plugin.lowrouter.fetch_models(api_key="sk-lr-b")
+    _use_key(monkeypatch, "sk-lr-a")
+    assert plugin.lowrouter.get_model_context_length("alias/coder") == 128000
+    assert accounts == ["sk-lr-a", "sk-lr-b"]
+
+
+def test_a_failed_fetch_for_a_new_key_does_not_answer_from_the_old_one(accounts, monkeypatch):
+    _use_key(monkeypatch, "sk-lr-a")
+    plugin.lowrouter.get_model_context_length("alias/coder")
+    monkeypatch.setattr(plugin, "fetch_catalog", lambda url, *, api_key, timeout: None)
+    _use_key(monkeypatch, "sk-lr-b")
+    assert plugin.lowrouter.get_model_context_length("alias/coder") is None
+
+
+def test_storing_drops_other_owners_expired_answers(monkeypatch):
+    plugin.catalog.store("old", [_item()])
+    monkeypatch.setattr(plugin, "CATALOG_TTL_SECONDS", 0.0)
+    plugin.catalog.store("new", [_item()])
+    assert plugin.catalog.context_length("old", "auto/lab/model") is None
+    assert plugin.catalog.context_length("new", "auto/lab/model") == 128000
+
+
+def test_a_catalog_item_with_a_non_string_id_is_skipped():
+    plugin.catalog.store("owner", [{"id": ["not", "hashable"]}, _item()])
+    assert plugin.catalog.context_length("owner", "auto/lab/model") == 128000
+
+
+def test_the_cache_does_not_hold_the_raw_key():
+    owner = plugin.catalog_owner("sk-lr-secret", plugin.BASE_URL)
+    assert "sk-lr-secret" not in owner
+    assert owner == plugin.catalog_owner("sk-lr-secret", plugin.BASE_URL + "/")
+    assert owner != plugin.catalog_owner(None, plugin.BASE_URL)
 
 
 CREDITS = {"data": {"total_credits": 115, "total_usage": 112.879761, "currency": "EUR"}}
