@@ -64,15 +64,16 @@ class _Catalog:
                              if now - answer[0] < CATALOG_TTL_SECONDS}
             self._answers[owner] = now, {item["id"]: item for item in items if isinstance(item, dict) and "id" in item}
 
-    def fresh(self, owner: str) -> bool:
+    def _answer(self, owner: str) -> tuple[float, dict[str, dict]]:
         with self._lock:
-            fetched_at, items = self._answers.get(owner, (0.0, {}))
+            return self._answers.get(owner, (0.0, {}))
+
+    def fresh(self, owner: str) -> bool:
+        fetched_at, items = self._answer(owner)
         return bool(items) and time.monotonic() - fetched_at < CATALOG_TTL_SECONDS
 
     def context_length(self, owner: str, model: str) -> int | None:
-        with self._lock:
-            items = self._answers.get(owner, (0.0, {}))[1]
-        context = (items.get(model) or {}).get("context_length")
+        context = (self._answer(owner)[1].get(model) or {}).get("context_length")
         return context if type(context) is int and context > 0 else None
 
 
