@@ -14,9 +14,13 @@ def empty_catalog(monkeypatch):
     monkeypatch.setattr(plugin, "catalog", plugin._Catalog())
 
 
+def _use_key(monkeypatch, api_key, base_url=plugin.BASE_URL):
+    monkeypatch.setattr(plugin, "configured_credentials", lambda: (api_key, base_url))
+
+
 @pytest.fixture(autouse=True)
 def no_configured_key(monkeypatch):
-    monkeypatch.setattr(plugin, "configured_credentials", lambda: (None, plugin.BASE_URL))
+    _use_key(monkeypatch, None)
 
 
 @pytest.fixture
@@ -102,13 +106,13 @@ def test_context_lookup_fetches_the_catalog_once_without_a_key_when_none_is_conf
 
 
 def test_context_lookup_uses_the_configured_key_and_base_url(requests, monkeypatch):
-    monkeypatch.setattr(plugin, "configured_credentials", lambda: ("sk-lr-test", "http://127.0.0.1:9080/v1"))
+    _use_key(monkeypatch, "sk-lr-test", "http://127.0.0.1:9080/v1")
     assert plugin.lowrouter.get_model_context_length("alias/coder") == 128000
     assert requests == [("http://127.0.0.1:9080/v1/models", "sk-lr-test")]
 
 
 def test_context_lookup_reuses_the_picker_fetch_with_the_same_key(requests, monkeypatch):
-    monkeypatch.setattr(plugin, "configured_credentials", lambda: ("sk-lr-test", plugin.BASE_URL))
+    _use_key(monkeypatch, "sk-lr-test")
     plugin.lowrouter.fetch_models(api_key="sk-lr-test")
     assert plugin.lowrouter.get_model_context_length("auto/anthropic/claude-haiku-4.5") == 200000
     assert len(requests) == 1
@@ -139,10 +143,6 @@ def accounts(monkeypatch):
 
     monkeypatch.setattr(plugin, "fetch_catalog", fake_fetch)
     return seen
-
-
-def _use_key(monkeypatch, api_key, base_url=plugin.BASE_URL):
-    monkeypatch.setattr(plugin, "configured_credentials", lambda: (api_key, base_url))
 
 
 def test_switching_keys_refetches_with_the_new_key(accounts, monkeypatch):

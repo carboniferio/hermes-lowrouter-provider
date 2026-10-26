@@ -64,15 +64,17 @@ class _Catalog:
             self._items = {item["id"]: item for item in items if isinstance(item, dict) and "id" in item}
             self._fetched_at = time.monotonic()
 
+    def _items_for(self, owner: str) -> dict[str, dict]:
+        # another key's aliases and windows are not ours
+        return self._items if owner == self._owner else {}
+
     def fresh(self, owner: str) -> bool:
         with self._lock:
-            return (owner == self._owner and bool(self._items)
-                    and time.monotonic() - self._fetched_at < CATALOG_TTL_SECONDS)
+            return bool(self._items_for(owner)) and time.monotonic() - self._fetched_at < CATALOG_TTL_SECONDS
 
     def context_length(self, owner: str, model: str) -> int | None:
         with self._lock:
-            # another key's aliases and windows are not ours
-            context = (self._items.get(model) or {}).get("context_length") if owner == self._owner else None
+            context = (self._items_for(owner).get(model) or {}).get("context_length")
         return context if type(context) is int and context > 0 else None
 
 
@@ -98,6 +100,14 @@ def fetch_catalog(url: str, *, api_key: str | None, timeout: float) -> list | No
     data = get_json(url, api_key=api_key, timeout=timeout)
     items = data.get("data") if isinstance(data, dict) else data
     return items if isinstance(items, list) else None
+
+
+def load_catalog(*, api_key: str | None, base_url: str, timeout: float) -> list | None:
+    """Fetch /v1/models and cache it for this key and base URL."""
+    items = fetch_catalog(base_url.rstrip("/") + "/models", api_key=api_key, timeout=timeout)
+    if items is not None:
+        catalog.store(catalog_owner(api_key, base_url), items)
+    return items
 
 
 def configured_credentials() -> tuple[str | None, str]:
@@ -134,21 +144,17 @@ class LowRouterProfile(ProviderProfile):
     def fetch_models(
         self, *, api_key: str | None = None, base_url: str | None = None, timeout: float = 8.0
     ) -> list[str] | None:
-        base_url = (base_url or self.base_url).rstrip("/")
-        items = fetch_catalog(base_url + "/models", api_key=api_key, timeout=timeout)
+        items = load_catalog(api_key=api_key, base_url=base_url or self.base_url, timeout=timeout)
         if items is None:
             return None
-        catalog.store(catalog_owner(api_key, base_url), items)
         return [item["id"] for item in items if runs_in_hermes(item)]
 
     def get_model_context_length(self, model: str) -> int | None:
-        # with the key, so aliases are in there
         api_key, base_url = configured_credentials()
         owner = catalog_owner(api_key, base_url)
         if not catalog.fresh(owner):
-            items = fetch_catalog(base_url.rstrip("/") + "/models", api_key=api_key, timeout=5.0)
-            if items is not None:
-                catalog.store(owner, items)
+            # with the key, so aliases are in there
+            load_catalog(api_key=api_key, base_url=base_url, timeout=5.0)
         return catalog.context_length(owner, model)
 
     def fetch_account_usage(self, *, base_url: str | None = None, api_key: str | None = None) -> Any:
